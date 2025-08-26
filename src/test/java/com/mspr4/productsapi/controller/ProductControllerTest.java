@@ -32,12 +32,8 @@ class ProductControllerTest {
 
     @Test
     void getAllProducts_shouldReturnList() throws Exception {
-        Product p1 = new Product();
-        p1.setProductId(UUID.randomUUID());
-        p1.setName("Café");
-        Product p2 = new Product();
-        p2.setProductId(UUID.randomUUID());
-        p2.setName("Thé");
+        Product p1 = new Product(); p1.setProductId(UUID.randomUUID()); p1.setName("Café");
+        Product p2 = new Product(); p2.setProductId(UUID.randomUUID()); p2.setName("Thé");
 
         when(service.getAllProducts()).thenReturn(Arrays.asList(p1, p2));
 
@@ -58,9 +54,7 @@ class ProductControllerTest {
     @Test
     void getProductById_shouldReturnProduct() throws Exception {
         UUID id = UUID.randomUUID();
-        Product product = new Product();
-        product.setProductId(id);
-        product.setName("Café");
+        Product product = new Product(); product.setProductId(id); product.setName("Café");
 
         when(service.getProductById(id)).thenReturn(Optional.of(product));
 
@@ -102,8 +96,6 @@ class ProductControllerTest {
     @Test
     void createProduct_shouldFailIfNoName() throws Exception {
         Product product = new Product(); // name missing
-        product.setPrice(BigDecimal.ONE);
-        product.setStockQuantity(1);
 
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -114,10 +106,7 @@ class ProductControllerTest {
     @Test
     void updateProduct_shouldReturnUpdatedProduct() throws Exception {
         UUID id = UUID.randomUUID();
-        Product existing = new Product();
-        existing.setProductId(id);
-        existing.setName("Café");
-
+        Product existing = new Product(); existing.setProductId(id); existing.setName("Café");
         Product update = new Product();
         update.setName("Café Deluxe");
         update.setPrice(BigDecimal.valueOf(4.5));
@@ -137,9 +126,7 @@ class ProductControllerTest {
     void updateProduct_shouldReturn404IfNotFound() throws Exception {
         UUID id = UUID.randomUUID();
         Product update = new Product();
-        update.setName("Nom valide");
-        update.setPrice(BigDecimal.ONE);
-        update.setStockQuantity(1);
+        update.setName("Café Deluxe"); update.setPrice(BigDecimal.valueOf(4.5)); update.setStockQuantity(10);
 
         when(service.getProductById(id)).thenReturn(Optional.empty());
 
@@ -150,7 +137,7 @@ class ProductControllerTest {
     }
 
     @Test
-    void deleteProduct_shouldReturn204() throws Exception {
+    void deleteProduct_shouldCallService() throws Exception {
         UUID id = UUID.randomUUID();
         doNothing().when(service).deleteProduct(id);
 
