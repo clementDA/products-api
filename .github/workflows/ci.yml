@@ -9,10 +9,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -41,20 +42,19 @@ jobs:
   promote-to-main:
     needs: build
     runs-on: ubuntu-latest
-    if: ${{ github.ref == 'refs/heads/dev' && success() }}
+    if: github.ref == 'refs/heads/dev'
     steps:
       - name: Checkout dev branch
         uses: actions/checkout@v4
         with:
           ref: dev
-          token: ${{ secrets.GH_PAT }}
+          fetch-depth: 0
 
       - name: Merge dev into main
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
           git checkout main
-          git merge dev
-          git push https://x-access-token:${GH_PAT}@github.com/${{ github.repository }} main
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
+          git merge dev --no-ff -m "Merge dev into main [ci skip]"
+          git push origin main
