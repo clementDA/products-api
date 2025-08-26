@@ -10,10 +10,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout code (dev)
         uses: actions/checkout@v4
         with:
+          ref: dev
           fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -44,11 +46,12 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/dev'
     steps:
-      - name: Checkout dev branch
+      - name: Checkout dev branch (with PAT)
         uses: actions/checkout@v4
         with:
           ref: dev
           fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Merge dev into main
         run: |
