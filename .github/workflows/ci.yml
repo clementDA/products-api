@@ -47,11 +47,18 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: dev
+          fetch-depth: 0
 
-      - name: Merge dev into main
+      - name: Configure Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch main branch
+        run: git fetch origin main
+
+      - name: Merge dev into main
+        run: |
           git checkout main
-          git merge dev
+          git merge dev --no-ff -m "Merge dev into main via CI"
           git push origin main
