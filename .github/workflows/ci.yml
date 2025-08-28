@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: ["main"]
 
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,7 +22,6 @@ jobs:
           --health-interval=5s
           --health-timeout=5s
           --health-retries=10
-
 
     steps:
       - name: Checkout code (dev)
