@@ -2,6 +2,7 @@ package com.mspr4.productsapi.model;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -21,7 +22,6 @@ public class Product {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-
     @Column(nullable = false, precision = 10, scale = 2)
     @NotNull
     private BigDecimal price;
@@ -31,6 +31,10 @@ public class Product {
     private Integer stockQuantity;
 
     private String imageUrl;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt = Instant.now();
+
 
 
     public UUID getProductId() {
@@ -73,5 +77,12 @@ public class Product {
     }
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
     }
 }

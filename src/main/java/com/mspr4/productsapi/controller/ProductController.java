@@ -2,6 +2,7 @@ package com.mspr4.productsapi.controller;
 
 import com.mspr4.productsapi.model.Product;
 import com.mspr4.productsapi.service.ProductService;
+import com.mspr4.productsapi.messaging.ProductEventPublisher;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -14,9 +15,11 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService service;
+    private final ProductEventPublisher eventPublisher;
 
-    public ProductController(ProductService service) {
+    public ProductController(ProductService service, ProductEventPublisher eventPublisher) {
         this.service = service;
+        this.eventPublisher = eventPublisher;
     }
 
     @GetMapping
@@ -34,6 +37,7 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<Product> create(@Valid @RequestBody Product product) {
         Product saved = service.saveProduct(product);
+        eventPublisher.publishProductCreated(saved);
         return ResponseEntity.status(201).body(saved);
     }
 
@@ -47,16 +51,19 @@ public class ProductController {
                     existing.setPrice(product.getPrice());
                     existing.setStockQuantity(product.getStockQuantity());
                     existing.setImageUrl(product.getImageUrl());
-                    return ResponseEntity.ok(service.saveProduct(existing));
+                    Product updated = service.saveProduct(existing);
+                    eventPublisher.publishProductUpdated(updated);
+                    return ResponseEntity.ok(updated);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable UUID id) {
-        try {
+        service.getProductById(id).ifPresent(product -> {
             service.deleteProduct(id);
-        } catch (NoSuchElementException ignored) {}
+            eventPublisher.publishProductDeleted(product);
+        });
         return ResponseEntity.noContent().build(); // 204
     }
 }
