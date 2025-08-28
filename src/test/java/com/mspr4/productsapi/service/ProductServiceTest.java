@@ -4,6 +4,7 @@ import com.mspr4.productsapi.model.Product;
 import com.mspr4.productsapi.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.math.BigDecimal;
 import java.util.Optional;
@@ -15,28 +16,31 @@ import static org.mockito.Mockito.*;
 class ProductServiceTest {
 
     private ProductRepository repository;
+    private RabbitTemplate rabbitTemplate;
     private ProductService service;
 
     @BeforeEach
     void setUp() {
         repository = mock(ProductRepository.class);
-        service = new ProductService(repository);
+        rabbitTemplate = mock(RabbitTemplate.class);
+        service = new ProductService(repository, rabbitTemplate);
     }
 
     @Test
-    void saveProduct_shouldReturnSavedProduct() {
+    void saveProduct_shouldReturnSavedProduct_andPublishEvent() {
         Product product = new Product();
-        product.setName("Café");
-        product.setPrice(BigDecimal.valueOf(3.5));
-        product.setStockQuantity(10);
+        product.setProductId(UUID.randomUUID());
+        product.setName("Test Product");
+        product.setPrice(BigDecimal.valueOf(10));
+        product.setStockQuantity(5);
 
         when(repository.save(product)).thenReturn(product);
 
         Product saved = service.saveProduct(product);
 
-        assertNotNull(saved);
-        assertEquals("Café", saved.getName());
         verify(repository, times(1)).save(product);
+        verify(rabbitTemplate, times(1))
+                .convertAndSend(eq("productQueue"), eq("Product saved: " + saved.getProductId()));
     }
 
     @Test
@@ -51,5 +55,16 @@ class ProductServiceTest {
 
         assertTrue(found.isPresent());
         assertEquals(id, found.get().getProductId());
+    }
+
+    @Test
+    void deleteProduct_shouldCallRepositoryAndPublishEvent() {
+        UUID id = UUID.randomUUID();
+
+        service.deleteProduct(id);
+
+        verify(repository, times(1)).deleteById(id);
+        verify(rabbitTemplate, times(1))
+                .convertAndSend(eq("productQueue"), eq("Product deleted: " + id));
     }
 }

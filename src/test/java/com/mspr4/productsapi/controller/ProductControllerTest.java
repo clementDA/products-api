@@ -1,8 +1,10 @@
 package com.mspr4.productsapi.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.mspr4.productsapi.model.Product;
 import com.mspr4.productsapi.service.ProductService;
+import com.mspr4.productsapi.messaging.ProductEventPublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -26,8 +28,11 @@ class ProductControllerTest {
     @BeforeEach
     void setUp() {
         service = mock(ProductService.class);
-        mockMvc = MockMvcBuilders.standaloneSetup(new ProductController(service)).build();
+        ProductEventPublisher eventPublisher = mock(ProductEventPublisher.class);
+        mockMvc = MockMvcBuilders.standaloneSetup(new ProductController(service, eventPublisher)).build();
+
         objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule()); // important pour Instant
     }
 
     @Test
@@ -139,6 +144,10 @@ class ProductControllerTest {
     @Test
     void deleteProduct_shouldCallService() throws Exception {
         UUID id = UUID.randomUUID();
+        Product product = new Product();
+        product.setProductId(id);
+
+        when(service.getProductById(id)).thenReturn(Optional.of(product)); // indispensable
         doNothing().when(service).deleteProduct(id);
 
         mockMvc.perform(delete("/api/products/{id}", id))
@@ -150,7 +159,7 @@ class ProductControllerTest {
     @Test
     void deleteProduct_shouldReturn204EvenIfNotFound() throws Exception {
         UUID id = UUID.randomUUID();
-        doThrow(new NoSuchElementException()).when(service).deleteProduct(id);
+        when(service.getProductById(id)).thenReturn(Optional.empty());
 
         mockMvc.perform(delete("/api/products/{id}", id))
                 .andExpect(status().isNoContent());
