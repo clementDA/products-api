@@ -48,7 +48,11 @@ jobs:
             ${{ runner.os }}-maven-
 
       - name: Wait for PostgreSQL
-        run: sleep 30
+        run:  |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for Postgres..."
+          sleep 5
+          done
 
       - name: Build and run tests
         run: mvn -B clean verify
