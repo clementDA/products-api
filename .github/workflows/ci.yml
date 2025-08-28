@@ -47,6 +47,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
+      - name: Wait for PostgreSQL
+        run: sleep 30
+
       - name: Build and run tests
         run: mvn -B clean verify
 
