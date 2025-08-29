@@ -21,15 +21,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-
-
-
             if (authHeader == null || !authHeader.equals("Bearer " + SECRET_TOKEN)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Accès refusé");
                 return;
             }
-
 
         filterChain.doFilter(request, response);
     }
